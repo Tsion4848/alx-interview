@@ -1,69 +1,57 @@
 #!/usr/bin/python3
-"""N queens
-"""
 
 import sys
 
 
-def print_solution(board):
-    """print board"""
-    solution = []
-    for i in range(len(board)):
-        for j in range(len(board)):
-            if board[i][j] == 1:
-                solution.append([i, j])
-    print(solution)
+def solve(row, column):
+    solver = [[]]
+    for q in range(row):
+        solver = place_queen(q, column, solver)
+    return solver
 
 
-def safe(board, row, col, n):
-    """Function to check if a queen can be placed on board"""
-    for c in range(col):
-        if board[row][c] == 1:
-            return False
-
-    for r, c in zip(range(row, -1, -1),
-                    range(col, -1, -1)):
-        if board[r][c] == 1:
-            return False
-
-    for r, c in zip(range(row, n, 1),
-                    range(col, -1, -1)):
-        if board[r][c] == 1:
-            return False
-
-    return True
+def place_queen(q, column, prev_solver):
+    solver_queen = []
+    for array in prev_solver:
+        for x in range(column):
+            if is_safe(q, x, array):
+                solver_queen.append(array + [x])
+    return solver_queen
 
 
-def solution(board, col, n):
-    if col == n:
-        print_solution(board)
-        return True
-
-    c = False
-    for i in range(n):
-        if safe(board, i, col, n):
-            board[i][col] = 1
-            c = solution(board, col + 1, n) or c
-            board[i][col] = 0
-    return c
+def is_safe(q, x, array):
+    if x in array:
+        return (False)
+    else:
+        return all(abs(array[column] - x) != q - column
+                   for column in range(q))
 
 
-if __name__ == "__main__":
-
+def init():
     if len(sys.argv) != 2:
-        print('Usage: nqueens N')
-        exit(1)
+        print("Usage: nqueens N")
+        sys.exit(1)
+    if sys.argv[1].isdigit():
+        the_queen = int(sys.argv[1])
+    else:
+        print("N must be a number")
+        sys.exit(1)
+    if the_queen < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+    return(the_queen)
 
-    try:
-        n = int(sys.argv[1])
 
-    except Exception:
-        print('N must be a number')
-        exit(1)
+def n_queens():
 
-    if n < 4:
-        print('N must be at least 4')
-        exit(1)
+    the_queen = init()
+    solver = solve(the_queen, the_queen)
+    for array in solver:
+        clean = []
+        for q, x in enumerate(array):
+            clean.append([q, x])
+        print(clean)
 
-    board = [[0 for i in range(n)] for j in range(n)]
-    solution(board, 0, n)
+
+if __name__ == '__main__':
+    n_queens()
