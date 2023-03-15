@@ -1,38 +1,45 @@
 #!/usr/bin/python3
-"""
-script that reads stdin line by line and computes metrics
-"""
+"""Script to get stats from a request"""
 
 import sys
 
-status = {'200': 0, '301': 0, '400': 0, '401': 0, '403': 0,
-          '404': 0, '405': 0, '500': 0}
-
+codes = {}
+status_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
 count = 0
 size = 0
 
 try:
-    for i in sys.stdin:
-        data = i.split()
-        data = data[::-1]
-
-        if len(data) > 2:
+    for ln in sys.stdin:
+        if count == 10:
+            print("File size: {}".format(size))
+            for key in sorted(codes):
+                print("{}: {}".format(key, codes[key]))
+            count = 1
+        else:
             count += 1
-            if count <= 10:
-                size += int(data[0])
-                codes = data[1]
 
-            if codes in status.keys():
-                status[codes] += 1
+        ln = ln.split()
 
-            if count == 10:
-                print('File size: {}'.format(size))
-                for state_code, v in sorted(status.items()):
-                    if v != 0:
-                        print('{}: {}'.format(state_code, v))
-                count = 0
-finally:
-    print('File size: {}'.format(size))
-    for state_code, v in sorted(status.items()):
-        if v != 0:
-            print('{}: {}'.format(state_code, v))
+        try:
+            size = size + int(ln[-1])
+        except (IndexError, ValueError):
+            pass
+
+        try:
+            if ln[-2] in status_codes:
+                if codes.get(ln[-2], -1) == -1:
+                    codes[ln[-2]] = 1
+                else:
+                    codes[ln[-2]] += 1
+        except IndexError:
+            pass
+
+    print("File size: {}".format(size))
+    for key in sorted(codes):
+        print("{}: {}".format(key, codes[key]))
+
+except KeyboardInterrupt:
+    print("File size: {}".format(size))
+    for key in sorted(codes):
+        print("{}: {}".format(key, codes[key]))
+    raise
